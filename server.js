@@ -11,7 +11,9 @@ const planRoutes = require("./routes/planRoute");
 const paymentGateway = require("./routes/paymentGatewayRoutes");
 const withdrawals = require("./routes/withdraw/withdrawRoutes");
 const emailRoutes = require("./routes/email/sendEmailGenerally");
-require("./cron/cronScheduler");
+// require("./cron/cronScheduler");
+const setupDailyCron = require("./cron/cronScheduler");
+const payoutRoutes = require("./routes/payoutRoute");
 
 const app = express();
 
@@ -53,8 +55,11 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Connect to MondoDB
 mongoDBConnection();
+setupDailyCron();
+
 
 // Routes
+app.use("/api/payout", payoutRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", planRoutes);
 app.use("/api", paymentGateway);
