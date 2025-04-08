@@ -1,7 +1,7 @@
 const User = require("../models/userModel");
 const InvestmentPlan = require("../models/investmentPlanModel");
 const ActiveInvestment = require("../models/activeInvestmentPlan");
-const { setupDailyCronJob } = require("../cron/cronScheduler");
+const { setupDailyCron } = require("../cron/cronScheduler");
 
 exports.purchasePlan = async (req, res) => {
   try {
@@ -64,7 +64,7 @@ exports.purchasePlan = async (req, res) => {
       },
     });
 
-    setupDailyCronJob(userId, plan, amount, activeInvestment._id);
+    setupDailyCron(userId, plan, amount, activeInvestment._id);
   } catch (error) {
     console.error("Error purchasing plan:", error);
     res.status(500).json({ message: "Internal server error" });
