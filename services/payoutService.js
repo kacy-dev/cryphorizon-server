@@ -134,6 +134,11 @@ const processPayouts = async (lock, today) => {
     if (diffInDays < 1) continue; // Skip if no days have passed
 
     const user = investment.user;
+    if (!user) {
+      console.warn([WARN] Skipping investment ${investment._id} — user not found.);
+      continue;
+    }
+    
     const roi = investment.daily_roi;
 
     // Add ROI per day missed (1-day granularity)
