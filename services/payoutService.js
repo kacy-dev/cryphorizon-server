@@ -129,9 +129,10 @@ const processPayouts = async (lock, today) => {
 
   for (const investment of activeInvestments) {
     const lastCalc = new Date(investment.last_calculated);
-    const diffInDays = Math.floor((now - lastCalc) / (1000 * 60 * 60 * 24));
+    const diffInDays = Math.floor((now - lastCalc) / (1000 * 60));
+    // const diffInDays = Math.floor((now - lastCalc) / (1000 * 60 * 60 * 24));
 
-    if (diffInDays < 1) continue; // Skip if no days have passed
+    if (diffInDays < 3) continue; // Skip if no days have passed
 
     const user = investment.user;
     if (!user) {
