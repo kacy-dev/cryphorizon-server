@@ -93,7 +93,7 @@ const startIntervalChecks = (lock, today) => {
     const currentHour = now.getHours();
 
     // Check if the time is between 12 AM and 5 AM
-    if (currentHour >= 5) {
+    if (currentHour >= 18) {
       clearInterval(interval);
       console.log("Exiting interval-based checks.");
       return;
