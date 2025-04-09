@@ -47,6 +47,7 @@ exports.purchasePlan = async (req, res) => {
       plan: planId,
       amount,
       daily_roi: hourlyROI,
+      last_calculated: new Date(),
     });
 
     // Save updates
@@ -64,7 +65,7 @@ exports.purchasePlan = async (req, res) => {
       },
     });
 
-    handleDailyPayout(userId, plan, amount, activeInvestment._id);
+    // handleDailyPayout(userId, plan, amount, activeInvestment._id);
   } catch (error) {
     console.error("Error purchasing plan:", error);
     res.status(500).json({ message: "Internal server error" });
