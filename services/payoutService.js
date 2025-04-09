@@ -135,7 +135,7 @@ const processPayouts = async (lock, today) => {
 
     const user = investment.user;
     if (!user) {
-      console.warn([WARN] Skipping investment ${investment._id} — user not found.);
+      console.warn(`[WARN] Skipping investment ${investment._id} — user not found.`);
       continue;
     }
     
