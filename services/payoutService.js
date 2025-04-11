@@ -59,7 +59,7 @@
 // module.exports = {
 //     handleDailyPayout
 // };
-/*const User = require("../models/userModel");
+const User = require("../models/userModel");
 const ActiveInvestment = require("../models/activeInvestmentPlan");
 const CronLock = require("../models/cronLock");
 
@@ -93,7 +93,7 @@ const startIntervalChecks = (lock, today) => {
     const currentHour = now.getHours();
 
     // Check if the time is between 12 AM and 5 AM
-    if (currentHour >= 18) {
+    if (currentHour >= 5) {
       clearInterval(interval);
       console.log("Exiting interval-based checks.");
       return;
@@ -173,122 +173,7 @@ const processPayouts = async (lock, today) => {
 module.exports = {
   handleDailyPayout
 };
-*/
 
 
 
 
-const User = require("../models/userModel");
-const ActiveInvestment = require("../models/activeInvestmentPlan");
-const CronLock = require("../models/cronLock");
-
-const handleDailyPayout = async () => {
-  const now = new Date();
-  const today = now.toDateString();
-  console.log(`[INFO] Cron triggered at: ${now.toISOString()}`);
-
-  // Check if the payout has already been processed today
-  const lock = await CronLock.findOne({ job: "dailyPayout" });
-  if (lock && new Date(lock.lastRun).toDateString() === today) {
-    console.log("Payout already processed for today");
-    return;
-  }
-
-  const hour = now.getHours();
-  // For testing: let the fallback check run if it's past a certain hour (e.g., 18:00)
-  if (lock && hour >= 18) {
-    console.log("Missed window (12am-6pm). Starting interval-based checks.");
-    startIntervalChecks(lock, today);
-    return;
-  }
-
-  console.log("Processing payout now.");
-  await processPayouts(lock, today);
-};
-
-const startIntervalChecks = (lock, today) => {
-  const interval = setInterval(async () => {
-    const now = new Date();
-    const currentHour = now.getHours();
-
-    // For testing, allow fallback checks until 18:00 (6PM)
-    if (currentHour >= 18) {
-      clearInterval(interval);
-      console.log("Exiting interval-based checks.");
-      return;
-    }
-
-    console.log(`Checking missed payouts at ${now.toTimeString()}`);
-
-    const isPayoutProcessed = await checkIfPayoutProcessedToday(today);
-    if (!isPayoutProcessed) {
-      await processPayouts(lock, today);
-      clearInterval(interval); // Stop checking once the update is successful
-      console.log("[INFO] Cron job executed. Missed payout processed successfully.");
-    }
-  }, 2 * 60 * 1000); // Check every 2 minutes (for testing)
-};
-
-const checkIfPayoutProcessedToday = async (today) => {
-  const lock = await CronLock.findOne({ job: "dailyPayout" });
-  return lock && new Date(lock.lastRun).toDateString() === today;
-};
-
-const processPayouts = async (lock, today) => {
-  const now = new Date();
-
-  // Get active investments that are still not completed
-  const activeInvestments = await ActiveInvestment.find({ isCompleted: false })
-    .populate("user")
-    .populate("plan");
-
-  console.log(`[INFO] Found ${activeInvestments.length} active investments.`);
-
-  for (const investment of activeInvestments) {
-    const lastCalc = new Date(investment.last_calculated);
-    const diffInMinutes = Math.floor((now - lastCalc) / (1000 * 60));
-    // For testing, if at least 3 minutes have passed then process the payout
-    if (diffInMinutes < 3) {
-      console.log(`[DEBUG] Not enough time has passed for ${investment.user.username} (${diffInMinutes} minutes).`);
-      continue;
-    }
-
-    const user = investment.user;
-    if (!user) {
-      console.warn(`[WARN] Skipping investment ${investment._id} — user not found.`);
-      continue;
-    }
-    
-    const roi = investment.daily_roi; // Daily ROI amount
-    // Calculate per-minute ROI (assuming 1440 minutes in a day)
-    const roiPerMinute = roi / 1440;
-    const totalROI = roiPerMinute * diffInMinutes;
-
-    console.log(`[INFO] Processing payout for ${user.username}: Diff in minutes: ${diffInMinutes}, Total ROI: ${totalROI}`);
-
-    user.balance += totalROI;
-    user.total_earnings += totalROI;
-    investment.last_calculated = now;
-
-    try {
-      await user.save();
-      await investment.save();
-      console.log(`[SUCCESS] ROI added for ${user.username}. New Balance: ${user.balance}`);
-    } catch (err) {
-      console.error(`[ERROR] Failed to save user/investment for ${user.username}:`, err);
-    }
-  }
-
-  // Update the cron lock to prevent reprocessing for the same day
-  await CronLock.findOneAndUpdate(
-    { job: "dailyPayout" },
-    { lastRun: now },
-    { upsert: true }
-  );
-
-  console.log("Payout processed successfully.");
-};
-
-module.exports = {
-  handleDailyPayout
-};
