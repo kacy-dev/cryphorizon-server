@@ -109,7 +109,7 @@ const startIntervalChecks = (lock, today) => {
       console.log("[INFO] Cron job executed...");
       console.log(" Missed payout processed successfully.");
     }
-  }, 2 * 60 * 1000); // Check every 30 minutes
+  }, 30 * 60 * 1000); // Check every 30 minutes
 };
 
 const checkIfPayoutProcessedToday = async (today) => {
