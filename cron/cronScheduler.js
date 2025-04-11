@@ -56,7 +56,7 @@ const { handleDailyPayout } = require("../services/payoutService");
 
 const setupDailyCron = () => {
   // cron.schedule("0 0 * * *", async () => {
-  cron.schedule("*/3 * * * *", async () => {
+  cron.schedule("0 0 * * *", async () => {
     console.log("Running daily payout cron...");
     await handleDailyPayout();
   });
