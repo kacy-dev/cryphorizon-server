@@ -248,7 +248,7 @@ const checkIfPayoutProcessedToday = async (today) => {
   return lock && new Date(lock.lastRun).toDateString() === today;
 };
 
-const processPayouts = async (lock, today) => {
+/*const processPayouts = async (lock, today) => {
   const now = new Date();
 
   try {
@@ -298,7 +298,169 @@ const processPayouts = async (lock, today) => {
   } catch (error) {
     console.error("[ERROR] Failed to process payouts:", error);
   }
+};*/
+
+/*const processPayouts = async (lock, today) => {
+  const now = new Date();
+
+  try {
+    const activeInvestments = await ActiveInvestment.find({ isCompleted: false })
+      .populate("user")
+      .populate("plan");
+
+    console.log(`[INFO] Found ${activeInvestments.length} active investments.`);
+
+    for (const investment of activeInvestments) {
+      const lastCalc = new Date(investment.last_calculated);
+      const todayDate = now.toDateString();
+
+      if (lastCalc.toDateString() === todayDate) continue; // Already processed today, skip
+
+      let diffInDays = Math.floor((now - lastCalc) / (1000 * 60 * 60 * 24));
+      if (diffInDays < 1) continue;
+
+      const MAX_DAYS = 5;
+      if (diffInDays > MAX_DAYS) {
+        console.warn(`[WARN] Capping ROI payout for user ${investment.user?.username} to ${MAX_DAYS} days (was ${diffInDays}).`);
+        diffInDays = MAX_DAYS;
+      }
+
+      const user = investment.user;
+      if (!user) {
+        console.warn(`[WARN] Skipping investment ${investment._id} — user not found.`);
+        continue;
+      }
+
+      const totalROI = investment.daily_roi * diffInDays;
+      user.balance += totalROI;
+      user.total_earnings += totalROI;
+
+      investment.last_calculated = now;
+
+      console.log(
+        `[INFO] Adding ${totalROI} ROI to user ${user.username} for ${diffInDays} day(s). Total earnings now: ${user.total_earnings}`
+      );
+
+      await user.save();
+      await investment.save();
+
+      console.log(`User's balance updated: ${user.username}, New Balance: ${user.balance}`);
+    }
+
+    // Update cron lock
+    await CronLock.findOneAndUpdate(
+      { job: "dailyPayout" },
+      { lastRun: now },
+      { upsert: true }
+    );
+
+    console.log("Payout processed successfully.");
+  } catch (error) {
+    console.error("[ERROR] Failed to process payouts:", error);
+  }
+};*/
+
+
+
+const processPayouts = async (lock, today) => {
+  const now = new Date();
+  const BATCH_SIZE = 100; // Number of investments to process in each batch
+  const MAX_RETRIES = 3;  // Max number of retry attempts in case of failure
+
+  try {
+    let skip = 0;
+    let retryCount = 0;
+    let hasError = false;
+
+    // Process investments in batches
+    while (true) {
+      const activeInvestments = await ActiveInvestment.find({ isCompleted: false })
+        .populate("user")
+        .populate("plan")
+        .skip(skip)
+        .limit(BATCH_SIZE);
+
+      console.log(`[INFO] Processing batch starting from ${skip}. Found ${activeInvestments.length} active investments.`);
+
+      if (activeInvestments.length === 0) break; // No more investments to process
+
+      for (const investment of activeInvestments) {
+        try {
+          const lastCalc = new Date(investment.last_calculated);
+          const todayDate = now.toDateString();
+
+          if (lastCalc.toDateString() === todayDate) continue; // Already processed today, skip
+
+          let diffInDays = Math.floor((now - lastCalc) / (1000 * 60 * 60 * 24));
+          if (diffInDays < 1) continue;
+
+          const MAX_DAYS = 5;
+          if (diffInDays > MAX_DAYS) {
+            console.warn(`[WARN] Capping ROI payout for user ${investment.user?.username} to ${MAX_DAYS} days (was ${diffInDays}).`);
+            diffInDays = MAX_DAYS;
+          }
+
+          const user = investment.user;
+          if (!user) {
+            console.warn(`[WARN] Skipping investment ${investment._id} — user not found.`);
+            continue;
+          }
+
+          const totalROI = investment.daily_roi * diffInDays;
+          user.balance += totalROI;
+          user.total_earnings += totalROI;
+
+          investment.last_calculated = now;
+
+          console.log(
+            `[INFO] Adding ${totalROI} ROI to user ${user.username} for ${diffInDays} day(s). Total earnings now: ${user.total_earnings}`
+          );
+
+          await user.save();
+          await investment.save();
+
+          console.log(`User's balance updated: ${user.username}, New Balance: ${user.balance}`);
+
+        } catch (error) {
+          console.error(`[ERROR] Failed to process investment ${investment._id}:`, error);
+
+          // Retry logic for the investment if it fails
+          if (retryCount < MAX_RETRIES) {
+            console.log(`[INFO] Retrying investment ${investment._id}, attempt ${retryCount + 1}`);
+            retryCount++;
+            hasError = true;  // Set a flag to retry the batch
+            break;  // Break to retry the entire batch
+          } else {
+            console.error(`[ERROR] Max retries reached for investment ${investment._id}. Skipping.`);
+          }
+        }
+      }
+
+      if (!hasError) {
+        skip += BATCH_SIZE; // Only move to next batch if there were no errors
+      } else {
+        // If there's an error, reset the retry count and try the same batch again
+        retryCount = 0;
+        hasError = false;
+        console.log("[INFO] Retrying the batch due to errors.");
+      }
+    }
+
+    // Update cron lock
+    await CronLock.findOneAndUpdate(
+      { job: "dailyPayout" },
+      { lastRun: now },
+      { upsert: true }
+    );
+
+    console.log("Payout processed successfully.");
+
+  } catch (error) {
+    console.error("[ERROR] Failed to process payouts:", error);
+  }
 };
+
+
 
 module.exports = { handleDailyPayout };
 
