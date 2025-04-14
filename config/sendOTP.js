@@ -1,4 +1,5 @@
 const transporter = require("../services/emailService");
+const { contactFormNotificationTemplate } =  require("../services/emailUtility");
 {
   /* <img style="display:block;max-height:28px;width:auto" src="https://ci3.googleusercontent.com/meips/ADKq_NYnR8RrmEzTcdA_g5Wr5k3yGyWcQa7B0pdz4QGMHupkoSK_3L7ylD-Qlb9op06QnpLKPjIES1rtsBX98vWs-rHnTXwY=s0-d-e1-ft#https://s.udemycdn.com/email/logo-udemy-v3.png" alt="Udemy" width="75" class="CToWUd" data-bit="iit"> */
 }
@@ -90,4 +91,16 @@ const sendOTPEmail = (email, otp, name) => {
   });
 };
 
-module.exports = sendOTPEmail;
+const contactFormNotificationEmail = async (name, email, mSubject, subject) => {
+  const mailOptions = {
+      from: email,
+      to: process.env.EMAIL_USER,
+      subject: `New Form Submission From - ${name}`,
+      html: contactFormNotificationTemplate(name, email, mSubject, subject),
+  };
+
+  await sendMail(process.env.EMAIL_USER, `New Form Submision From - ${name}`, contactFormNotificationTemplate(name, email, mSubject, subject));
+};
+
+
+module.exports = sendOTPEmail, contactFormNotificationEmail;
