@@ -14,6 +14,8 @@ const emailRoutes = require("./routes/email/sendEmailGenerally");
 // require("./cron/cronScheduler");
 const setupDailyCron = require("./cron/cronScheduler");
 const payoutRoutes = require("./routes/payoutRoute");
+const contactRoute = require('./routes/contactRoute');
+
 
 const app = express();
 
@@ -65,6 +67,8 @@ app.use("/api", planRoutes);
 app.use("/api", paymentGateway);
 app.use("/api", withdrawals);
 app.use("/api/emails", emailRoutes);
+app.use("/api", contactRoute);
+
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
