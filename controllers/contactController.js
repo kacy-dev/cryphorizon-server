@@ -1,5 +1,5 @@
 const ContactForm = require('../models/ContactFormModel');
-const { contactFormNotification } = require('../config/sendOTP');
+const contactFormNotification = require('../config/sendOTP');
 
 // **1. Send Form Details**
 const sendFormDetails = async (req, res) => {
