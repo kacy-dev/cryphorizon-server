@@ -1,5 +1,5 @@
 const ContactForm = require('../models/ContactFormModel');
-const { contactFormNotificationEmail } = require('../config/sendOTP');
+const { contactFormNotification } = require('../config/sendOTP');
 
 // **1. Send Form Details**
 const sendFormDetails = async (req, res) => {
@@ -24,7 +24,7 @@ const sendFormDetails = async (req, res) => {
         await newSubmission.save();
 
         // Send notification email to admin
-        await contactFormNotificationEmail(name, email, mSubject, subject);
+        contactFormNotificationEmail(name, email, mSubject, subject);
 
         return res.status(201).json({
             message: "Your message has been sent successfully",
