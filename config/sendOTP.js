@@ -92,11 +92,12 @@ const sendOTPEmail = (email, otp, name) => {
   });
 };
 
+onst adminEmail = process.env.EMAIL_USER; // Make sure this is in your .env
 
-const contactFormNotification = (name, email, mSubject, subject) => {
+const contactFormNotification = (name, email, mSubject, subject, adminEmail) => {
   const mailOptions = {
     from: email,
-    to: process.env.EMAIL_USER,
+    to: adminEmail,
     subject: `New Form Submission From - ${name}`,
     html: `
     <head>
