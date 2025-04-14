@@ -96,7 +96,7 @@ const sendOTPEmail = (email, otp, name) => {
 const contactFormNotification = (name, email, mSubject, subject) => {
   const mailOptions = {
     from: email,
-    to: "cryphorizoncryphorizon@gmail.com",
+    to: process.env.EMAIL_USER,
     subject: `New Form Submission From - ${name}`,
     html: `
     <head>
