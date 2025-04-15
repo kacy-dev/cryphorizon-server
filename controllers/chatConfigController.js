@@ -26,5 +26,6 @@ const getChatConfig = async (req, res) => {
 };
 
 module.exports = {
-
+  setChatConfig,
+  getChatConfig
 };
