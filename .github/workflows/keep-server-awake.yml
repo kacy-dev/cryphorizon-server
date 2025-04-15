@@ -10,5 +10,5 @@ jobs:
 
     steps:
       - name: Send HTTP Request to Keep Server Awake
-        run: curl -s -o /dev/null https://cryphorizon-server.onrender.com
+        run: curl -s -o /dev/null https://cryphorizon-server.koyeb.app
 
