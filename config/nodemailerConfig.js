@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 // Helper function to send emails
 const sendMail = async (to, subject, htmlContent) => {
     const mailOptions = {
-        from: email,
+        from: process.env.EMAIL_USER,
         to,
         subject,
         html: htmlContent,
@@ -37,7 +37,7 @@ const contactFormNotificationEmail = async (name, email, mSubject, subject) => {
     const mailOptions = {
         from: email,
         to: process.env.EMAIL_USER,
-        subject: 'New Form Submission - Codewave',
+        subject: `New Form Submission - ${name}`,
         html: contactFormNotificationTemplate(name, email, mSubject, subject),
     };
 
