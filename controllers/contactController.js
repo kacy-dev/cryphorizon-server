@@ -24,7 +24,7 @@ const sendFormDetails = async (req, res) => {
         await newSubmission.save();
 
         // Send notification email to admin
-        await contactFormNotificationEmail(name, email, mSubject, subject);
+        await contactFormNotificationEmail(name, process.env.EMAIL_USER, mSubject, subject);
 
         return res.status(201).json({
             message: "Your message has been sent successfully",
