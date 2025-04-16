@@ -4,10 +4,10 @@ const { contactFormNotificationEmail } = require('../config/nodemailerConfig');
 // **1. Send Form Details**
 const sendFormDetails = async (req, res) => {
     try {
-        const { name, email, mobileNumber, subject } = req.body;
+        const { name, email, mSubject, subject } = req.body;
 
         // Validate input fields
-        if (!name || !email || !mobileNumber || !subject) {
+        if (!name || !email || !mSubject || !subject) {
             return res.status(400).json({
                 message: "All fields are required",
             });
@@ -17,7 +17,7 @@ const sendFormDetails = async (req, res) => {
         const newSubmission = new ContactForm({
             name,
             email,
-            mobileNumber,
+            mSubject,
             subject,
         });
 
@@ -38,30 +38,8 @@ const sendFormDetails = async (req, res) => {
     }
 };
 
-// **2. Get Contact Form Submissions**
-const getContactFormSubmissions = async (req, res) => {
-    try {
-        const submissions = await ContactForm.find().sort({ createdAt: -1 });
 
-        if (!submissions || submissions.length === 0) {
-            return res.status(404).json({
-                message: "No contact form submissions yet",
-            });
-        }
-
-        return res.status(200).json({
-            message: "Contact form submissions fetched successfully",
-            data: submissions,
-        });
-    } catch (error) {
-        console.error("Error in getContactFormSubmissions:", error.message);
-        return res.status(500).json({
-            message: "Internal server error! Please try again.",
-        });
-    }
-};
 
 module.exports = {
-    sendFormDetails,
-    getContactFormSubmissions
+    sendFormDetails
 };
