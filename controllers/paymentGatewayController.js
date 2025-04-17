@@ -270,6 +270,24 @@ exports.userUploadPaymentGatewayDetails = async (req, res) => {
   }
 };
 
+// exports.getRecentDeposits = async (req, res) => {
+//   try {
+//     const recentDeposits = await userPayment
+//       .find({ status: "approved" })
+//       .sort({ _id: -1 })
+//       .select("-payment_proof_image -updatedAt -createdAt")
+//       .limit(5)
+//       .populate(
+//         "paid_by",
+//         "first_name last_name username email balance transactions user_plan"
+//       );
+//     res.status(200).json({ data: recentDeposits });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ message: "Error fetching", error });
+//   }
+// };
+
 exports.getRecentDeposits = async (req, res) => {
   try {
     const recentDeposits = await userPayment
@@ -281,12 +299,17 @@ exports.getRecentDeposits = async (req, res) => {
         "paid_by",
         "first_name last_name username email balance transactions user_plan"
       );
-    res.status(200).json({ data: recentDeposits });
+
+    // Filter out deposits where user is missing (paid_by is null)
+    const filteredDeposits = recentDeposits.filter(d => d.paid_by !== null);
+
+    res.status(200).json({ data: filteredDeposits });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Error fetching", error });
   }
 };
+
 
 exports.userUploadPaymentGatewayDetailsById = async (req, res) => {
   try {
