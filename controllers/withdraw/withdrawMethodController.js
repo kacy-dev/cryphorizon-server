@@ -219,33 +219,56 @@ exports.getWithdrawals = async (req, res) => {
   }
 };
 
+// exports.getRecentWithdrawals = async (req, res) => {
+//   try {
+//     const latestWithdrawals = await userWithdraw
+//       .find({ status: "accepted" })
+//       .sort({ _id: -1 })
+//       .limit(5)
+//       .populate({
+//         path: "withdrawal_name",
+//         select: "withdrawal_name"
+//       })
+//       .populate({
+//         path: "user",
+//         select: "first_name last_name email username createdAt"
+//       });
+
+//     // Filter out any withdrawals where the user no longer exists
+//     const activeWithdrawals = latestWithdrawals.filter(item => item.user !== null);
+
+//     res.status(200).json({ message: "Fetched", latestWithdrawals: activeWithdrawals });
+//   } catch (error) {
+//     console.error("Error: ", error);
+//     res.status(500).json({
+//       message: "Internal server error",
+//       errMessage: error.message
+//     });
+//   }
+// };
+
 exports.getRecentWithdrawals = async (req, res) => {
   try {
-    const latestWithdrawals = await userWithdraw
-      .find({ status: "accepted" })
+    const withdrawals = await userWithdraw
+      .find({ status: "accepted" }) // only accepted ones
       .sort({ _id: -1 })
       .limit(5)
-      .populate({
-        path: "withdrawal_name",
-        select: "withdrawal_name"
-      })
-      .populate({
-        path: "user",
-        select: "first_name last_name email username createdAt"
-      });
+      .populate("withdrawal_name", "withdrawal_name")
+      .populate("user", "first_name last_name email username createdAt"); // populate selected fields only
 
-    // Filter out any withdrawals where the user no longer exists
-    const activeWithdrawals = latestWithdrawals.filter(item => item.user !== null);
+    // ✅ Filter out any withdrawals where the user was deleted
+    const activeWithdrawals = withdrawals.filter((withdrawal) => withdrawal.user !== null);
 
     res.status(200).json({ message: "Fetched", latestWithdrawals: activeWithdrawals });
   } catch (error) {
-    console.error("Error: ", error);
+    console.error("Error fetching withdrawals:", error);
     res.status(500).json({
       message: "Internal server error",
-      errMessage: error.message
+      errMessage: error.message,
     });
   }
 };
+
 
 
 exports.userWithdrawalLog = async (req, res) => {
