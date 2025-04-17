@@ -218,22 +218,35 @@ exports.getWithdrawals = async (req, res) => {
       .json({ message: "Internal server error", errMessage: error.message });
   }
 };
+
 exports.getRecentWithdrawals = async (req, res) => {
   try {
     const latestWithdrawals = await userWithdraw
       .find({ status: "accepted" })
       .sort({ _id: -1 })
       .limit(5)
-      .populate("withdrawal_name", "withdrawal_name")
-      .populate("user", "first_name last_name email username createdAt");
-    res.status(200).json({ message: "Fetched", latestWithdrawals });
+      .populate({
+        path: "withdrawal_name",
+        select: "withdrawal_name"
+      })
+      .populate({
+        path: "user",
+        select: "first_name last_name email username createdAt"
+      });
+
+    // Filter out any withdrawals where the user no longer exists
+    const activeWithdrawals = latestWithdrawals.filter(item => item.user !== null);
+
+    res.status(200).json({ message: "Fetched", latestWithdrawals: activeWithdrawals });
   } catch (error) {
     console.error("Error: ", error);
-    res
-      .status(500)
-      .json({ message: "Internal server error", errMessage: error.message });
+    res.status(500).json({
+      message: "Internal server error",
+      errMessage: error.message
+    });
   }
 };
+
 
 exports.userWithdrawalLog = async (req, res) => {
   try {
