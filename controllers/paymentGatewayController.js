@@ -251,6 +251,25 @@ exports.approvePayment = async (req, res) => {
   }
 };
 
+// exports.userUploadPaymentGatewayDetails = async (req, res) => {
+//   try {
+//     const payments = await userPayment
+//       .find({})
+//       .sort({ _id: -1 })
+//       .populate(
+//         "paid_by",
+//         "first_name last_name username profile_img email balance isActive createdAt updatedAt referrals total_earnings transactions total_invest user_plan"
+//       );
+
+//     res.status(200).json({ data: payments });
+//   } catch (error) {
+//     console.error(error);
+//     return res
+//       .status(500)
+//       .json({ message: "Error fetching", err: error.message });
+//   }
+// };
+
 exports.userUploadPaymentGatewayDetails = async (req, res) => {
   try {
     const payments = await userPayment
@@ -261,7 +280,12 @@ exports.userUploadPaymentGatewayDetails = async (req, res) => {
         "first_name last_name username profile_img email balance isActive createdAt updatedAt referrals total_earnings transactions total_invest user_plan"
       );
 
-    res.status(200).json({ data: payments });
+    // Filter out any payment where 'paid_by' is null or undefined
+    const filteredPayments = payments.filter(
+      (payment) => payment.paid_by && payment.paid_by.username
+    );
+
+    res.status(200).json({ data: filteredPayments });
   } catch (error) {
     console.error(error);
     return res
@@ -269,6 +293,7 @@ exports.userUploadPaymentGatewayDetails = async (req, res) => {
       .json({ message: "Error fetching", err: error.message });
   }
 };
+
 
 // exports.getRecentDeposits = async (req, res) => {
 //   try {
