@@ -1,4 +1,4 @@
-const ChatScript = require('../models/ChatScript');
+const ChatScript = require('../models/chatScriptSchema');
 
 // Create new script
 exports.createScript = async (req, res) => {
