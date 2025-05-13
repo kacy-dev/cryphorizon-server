@@ -48,6 +48,7 @@ exports.purchasePlan = async (req, res) => {
       amount,
       daily_roi: hourlyROI,
       last_calculated: new Date(),
+      expectedReturn,
     });
 
     // Save updates
