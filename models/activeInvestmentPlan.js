@@ -26,8 +26,16 @@ const activeInvestmentSchema = new mongoose.Schema({
   isCompleted: {
     type: Boolean,
     default: false,
-  },  
+  },
   daily_roi: {
+    type: Number,
+    required: true,
+  },
+  totalPaid: {
+    type: Number,
+    default: 0,
+  },
+  expectedReturn: {
     type: Number,
     required: true,
   },
@@ -35,4 +43,5 @@ const activeInvestmentSchema = new mongoose.Schema({
 
 const ActiveInvestment = mongoose.model("ActiveInvestment", activeInvestmentSchema);
 
-module.exports = ActiveInvestment; 
+module.exports = ActiveInvestment;
+
