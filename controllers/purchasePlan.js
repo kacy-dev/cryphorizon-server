@@ -73,7 +73,6 @@ exports.purchasePlan = async (req, res) => {
   }
 };*/
 
-
 const User = require("../models/userModel");
 const InvestmentPlan = require("../models/investmentPlanModel");
 const ActiveInvestment = require("../models/activeInvestmentPlan");
@@ -118,11 +117,13 @@ exports.purchasePlan = async (req, res) => {
     // Assign user plan
     user.user_plan = planId;
 
-    // Calculate daily ROI (or hourly ROI depending on your logic)
+    // Calculate daily ROI
     const dailyROI = (amount * plan.roi) / 100;
 
-    // Calculate the expected return for the investment
-    const duration = plan.duration; // Assuming `duration` is in days; fallback to 30 if not provided.
+    // Duration in days
+    const duration = plan.duration || 30;
+
+    // ✅ Correct expected return (flat ROI, not compounded)
     const expectedReturn = amount + (dailyROI * duration);
 
     // Create a new ActiveInvestment record
@@ -132,7 +133,7 @@ exports.purchasePlan = async (req, res) => {
       amount,
       daily_roi: dailyROI,
       last_calculated: new Date(),
-      expectedReturn,  // Use the calculated expected return
+      expectedReturn,
     });
 
     // Save investment and update user
@@ -148,7 +149,7 @@ exports.purchasePlan = async (req, res) => {
         remainingBalance: user.balance,
         dailyROI,
         investmentId: activeInvestment._id,
-        expectedReturn,  // Include expected return in the response
+        expectedReturn,
       },
     });
 
@@ -157,4 +158,3 @@ exports.purchasePlan = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
