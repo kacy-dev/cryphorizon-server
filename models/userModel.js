@@ -68,6 +68,7 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    
     total_earnings: {
       type: Number,
       default: 0,
