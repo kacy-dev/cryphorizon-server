@@ -390,6 +390,41 @@ exports.getUserById = async (req, res) => {
   }
 };
 
+exports.getReferredUsers = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate user ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid user ID format" });
+    }
+
+    // Fetch the user and populate the referred_users field
+    const user = await User.findById(id)
+      .select("referred_users") // select only referrals
+      .populate("referred_users", "username first_name last_name createdAt referral_earnings"); // populate limited fields
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Build the referred users list
+    const referredUsersList = (user.referred_users || []).map((ref) => ({
+      id: ref._id,
+      username: ref.username,
+      fullName: `${ref.first_name} ${ref.last_name}`,
+      joinedAt: ref.createdAt,
+      referralEarnings: ref.referral_earnings || 0,
+    }));
+
+    return res.status(200).json({ referredUsersList });
+  } catch (error) {
+    console.error("Error fetching referred users:", error);
+    res.status(500).json({ message: "Something went wrong", error });
+  }
+};
+
+
 exports.deleteManyUsers = async (req, res) => {
   try {
     // Extract IDs from the request body
