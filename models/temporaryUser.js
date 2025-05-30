@@ -9,6 +9,11 @@ const tempUserSchema = new mongoose.Schema({
   profile_img: String,
   otp: String,
   otpExpiresAt: Date,
+  referrer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

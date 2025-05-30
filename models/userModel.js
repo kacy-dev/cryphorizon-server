@@ -68,7 +68,21 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    
+    referrer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    referred_users: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    referral_earnings: {
+      type: Number,
+      default: 0,
+    },
     total_earnings: {
       type: Number,
       default: 0,

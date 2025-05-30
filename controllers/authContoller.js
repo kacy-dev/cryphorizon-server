@@ -13,6 +13,15 @@ exports.registerUser = async (req, res) => {
   try {
     const { first_name, last_name, email, isActive, username, password } =
       req.body;
+    const referralUsername = req.query.ref;
+    let referrer = null;
+
+    if (referralUsername) {
+      const refUser = await User.findOne({ username: referralUsername });
+      if (refUser) {
+        referrer = refUser._id;
+      }
+    }
 
     // Ensure image file is provided
     if (!req.file) {
@@ -63,6 +72,7 @@ exports.registerUser = async (req, res) => {
       balance: 0,
       referrals: 0,
       isActive: true,
+      referrer: referrer || null,
     });
 
     // Send OTP email
@@ -97,8 +107,8 @@ exports.verifyOTP = async (req, res) => {
     }
 
     // Create a permanent user
-    const { first_name, last_name, username, password, profile_img } = tempUser;
-    await User.create({
+    const { first_name, last_name, username, password, profile_img, referrer } = tempUser;
+    const newUser = await User.create({
       first_name,
       last_name,
       username,
@@ -107,8 +117,20 @@ exports.verifyOTP = async (req, res) => {
       profile_img,
       balance: 0,
       referrals: 0,
+      referrer,
     });
-
+    
+    if (referrer) {
+      await User.findByIdAndUpdate(referrer, {
+        $inc: { referral_earnings: 10, referrals: 1 },
+        $push: { referred_users: newUser._id },
+      });
+    
+      // Give welcome bonus to new user
+      await User.findByIdAndUpdate(newUser._id, {
+        $inc: { balance: 5 },
+      });
+    }
     // Delete temp user after verification
     await TempUser.deleteOne({ email });
 
@@ -162,6 +184,11 @@ exports.loginUser = async (req, res) => {
           username: user.username,
           balance: user.balance,
           total_invest: user.total_invest,
+          referral_link: `https://cryphorizon.com/register?ref=${user.username}`, 
+          referral_stats: {
+            total_referrals: user.referrals,
+            referral_earnings: user.referral_earnings,
+          },
         },
       });
     });
@@ -170,6 +197,56 @@ exports.loginUser = async (req, res) => {
     res.status(500).json({ message: "Error during login", error });
   }
 };
+
+exports.getReferralStats = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId)
+      .populate({
+        path: "referred_users",
+        select: "username first_name last_name createdAt referral_earnings",
+      })
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const totalReferrals = user.referrals || user.referred_users.length || 0;
+
+    const referralEarnings = user.referral_earnings || 0;
+
+    const referralsList = (user.referred_users || []).map((ref) => ({
+      id: ref._id,
+      username: ref.username,
+      fullName: `${ref.first_name} ${ref.last_name}`,
+      joinedAt: ref.createdAt,
+      referralEarnings: ref.referral_earnings || 0,
+    }));
+
+    return res.status(200).json({
+      totalReferrals,
+      referralEarnings,
+      referrals: referralsList,
+    });
+  } catch (error) {
+    console.error("Error fetching referral stats:", error);
+    return res.status(500).json({ message: "Server error fetching referral stats" });
+  }
+};
+
+exports.getUpline = async (req, res) => {
+  const username = req.params.username;
+
+  const referrer = await User.findOne({ username }).select("username first_name last_name");
+  if (!referrer) {
+    return res.status(404).json({ message: "Referrer not found" });
+  }
+
+  res.status(200).json({
+    upline: referrer.first_name ? `${referrer.first_name} ${referrer.last_name}` : referrer.username
+  });
+};
+
 
 exports.getUsers = async (req, res) => {
   try {

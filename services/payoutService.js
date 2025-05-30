@@ -113,21 +113,28 @@ const processPayouts = async (lock, today) => {
             continue;
           }
 
-          const totalROI = investment.daily_roi * diffInDays;
-          investment.totalPaid += totalROI;
-          user.balance += totalROI;
-          user.total_earnings += totalROI;
+          const dailyROI = investment.daily_roi;
+          const totalROI = dailyROI * diffInDays;
+
+          const expectedReturn = investment.expectedReturn;
+          const remainingROI = expectedReturn - investment.amount_paid;
+
+          // Cap ROI to not exceed expected return
+          const creditedROI = Math.min(totalROI, remainingROI);
+
+          investment.amount_paid += creditedROI;
+          user.balance += creditedROI;
+          user.total_earnings += creditedROI;
 
           investment.last_calculated = now;
 
-          const expectedReturn = investment.amount * (plan.return_percentage || 1); // Default to 1x if missing
-          if (investment.totalPaid >= expectedReturn) {
+          if (investment.amount_paid >= expectedReturn) {
             investment.isCompleted = true;
             console.log(`[INFO] Investment ${investment._id} completed for user ${user.username}`);
           }
 
           console.log(
-            `[INFO] Adding ${totalROI} ROI to user ${user.username} for ${diffInDays} day(s). Total earnings now: ${user.total_earnings}`
+            `[INFO] Crediting ${creditedROI} ROI to user ${user.username} for ${diffInDays} day(s). Total earnings now: ${user.total_earnings}`
           );
 
           await user.save();
@@ -168,6 +175,7 @@ const processPayouts = async (lock, today) => {
     console.error("[ERROR] Failed to process payouts:", error);
   }
 };
+
 
 module.exports = { handleDailyPayout };
 

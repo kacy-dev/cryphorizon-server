@@ -31,7 +31,7 @@ const activeInvestmentSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  totalPaid: {
+  amount_paid: { 
     type: Number,
     default: 0,
   },
@@ -44,4 +44,3 @@ const activeInvestmentSchema = new mongoose.Schema({
 const ActiveInvestment = mongoose.model("ActiveInvestment", activeInvestmentSchema);
 
 module.exports = ActiveInvestment;
-
