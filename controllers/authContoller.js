@@ -13,7 +13,7 @@ exports.registerUser = async (req, res) => {
   try {
     const { first_name, last_name, email, isActive, username, password } =
       req.body;
-      const referralUsername = req.body.referral_code || req.query.ref;
+      const referralUsername = req.body.referral_code;
       let referrer = null;
       let refUser = null;
       
