@@ -126,10 +126,16 @@ exports.verifyOTP = async (req, res) => {
       referrals: 0,
       referrer,
     });
+
+    const REFERRAL_REWARD = 10;
     
     if (referrer) {
       await User.findByIdAndUpdate(referrer, {
-        $inc: { referral_earnings: 10, referrals: 1 },
+        $inc: { 
+          referrals: 1,
+          referral_earnings: REFERRAL_REWARD,
+          balance: REFERRAL_REWARD, 
+        },
         $push: { referred_users: newUser._id },
       });
     
