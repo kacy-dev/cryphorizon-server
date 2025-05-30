@@ -402,20 +402,22 @@ exports.getReferredUsers = async (req, res) => {
     // Fetch the user and populate the referred_users field
     const user = await User.findById(id)
       .select("referred_users") // select only referrals
-      .populate("referred_users", "username first_name last_name createdAt referral_earnings"); // populate limited fields
+      .populate("referred_users", "username first_name last_name createdAt referral_earnings");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Build the referred users list
-    const referredUsersList = (user.referred_users || []).map((ref) => ({
-      id: ref._id,
-      username: ref.username,
-      fullName: `${ref.first_name} ${ref.last_name}`,
-      joinedAt: ref.createdAt,
-      referralEarnings: ref.referral_earnings || 0,
-    }));
+    // Defensive filtering to avoid undefined entries
+    const referredUsersList = (user.referred_users || [])
+      .filter(ref => ref != null)  // remove null or undefined
+      .map((ref) => ({
+        id: ref._id,
+        username: ref.username,
+        fullName: `${ref.first_name} ${ref.last_name}`,
+        joinedAt: ref.createdAt,
+        referralEarnings: ref.referral_earnings || 0,
+      }));
 
     return res.status(200).json({ referredUsersList });
   } catch (error) {
@@ -423,6 +425,7 @@ exports.getReferredUsers = async (req, res) => {
     res.status(500).json({ message: "Something went wrong", error });
   }
 };
+
 
 
 exports.deleteManyUsers = async (req, res) => {
