@@ -22,6 +22,8 @@ exports.registerUser = async (req, res) => {
         referrer = refUser._id;
       }
     }
+    console.log("Referral Code Provided:", referralUsername);
+    console.log("Referrer Found:", refUser);  
 
     // Ensure image file is provided
     if (!req.file) {
@@ -74,6 +76,9 @@ exports.registerUser = async (req, res) => {
       isActive: true,
       referrer: referrer || null,
     });
+
+    console.log("TempUser Referrer:", referrer);
+
 
     // Send OTP email
     sendOTPEmail(email, otp, first_name);
