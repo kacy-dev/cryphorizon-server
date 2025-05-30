@@ -13,6 +13,7 @@ const {
   getUserById,
   editUser,
   getNewestUsers,
+  getReferredUsers,
   editAdminPassword,
 } = require("../controllers/authContoller");
 const upload = require("../config/cloudinary");
