@@ -13,17 +13,19 @@ exports.registerUser = async (req, res) => {
   try {
     const { first_name, last_name, email, isActive, username, password } =
       req.body;
-    const referralUsername = req.body.referral_code;
-    let referrer = null;
-
-    if (referralUsername) {
-      const refUser = await User.findOne({ username: referralUsername });
-      if (refUser) {
-        referrer = refUser._id;
+      const referralUsername = req.body.referral_code || req.query.ref;
+      let referrer = null;
+      let refUser = null;
+      
+      if (referralUsername) {
+        refUser = await User.findOne({ username: referralUsername });
+        if (refUser) {
+          referrer = refUser._id;
+        }
       }
-    }
-    console.log("Referral Code Provided:", referralUsername);
-    console.log("Referrer Found:", refUser);  
+      
+      console.log("Referral Code Provided:", referralUsername);
+      console.log("Referrer Found:", refUser);
 
     // Ensure image file is provided
     if (!req.file) {
