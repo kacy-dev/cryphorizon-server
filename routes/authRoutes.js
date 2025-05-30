@@ -22,7 +22,7 @@ const router = express.Router();
 router.post("/register", upload.single("profile_img"), registerUser);
 router.post("/verify-otp", verifyOTP);
 router.post("/login", loginUser);
-router.post("/referral-stats", getReferralStats);
+router.get("/referral-stats", getReferralStats);
 router.post("/upline", getUpline);
 router.get("/users", getUsers);
 router.get("/users/latest", getNewestUsers);
