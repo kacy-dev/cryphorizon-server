@@ -408,9 +408,9 @@ exports.getReferredUsers = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Defensive filtering to avoid undefined entries
+   
     const referredUsersList = (user.referred_users || [])
-      .filter(ref => ref != null)  // remove null or undefined
+      .filter(ref => ref != null) 
       .map((ref) => ({
         id: ref._id,
         username: ref.username,
