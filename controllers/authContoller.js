@@ -211,41 +211,7 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-exports.getReferralStats = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const user = await User.findById(userId)
-      .populate({
-        path: "referred_users",
-        select: "username first_name last_name createdAt referral_earnings",
-      })
-      .lean();
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    const totalReferrals = user.referrals || user.referred_users.length || 0;
-
-    const referralEarnings = user.referral_earnings || 0;
-
-    const referralsList = (user.referred_users || []).map((ref) => ({
-      id: ref._id,
-      username: ref.username,
-      fullName: `${ref.first_name} ${ref.last_name}`,
-      joinedAt: ref.createdAt,
-      referralEarnings: ref.referral_earnings || 0,
-    }));
-
-    return res.status(200).json({
-      totalReferrals,
-      referralEarnings,
-      referrals: referralsList,
-    });
-  } catch (error) {
-    console.error("Error fetching referral stats:", error);
-    return res.status(500).json({ message: "Server error fetching referral stats" });
-  }
-};
 
 exports.getUpline = async (req, res) => {
   const username = req.params.username;
