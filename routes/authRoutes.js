@@ -6,7 +6,6 @@ const {
   getUsers,
   registerAdmin,
   loginAdmin,
-  getReferralStats,
   getUpline,
   deleteManyUsers,
   deleteSingleUser,
@@ -23,7 +22,6 @@ const router = express.Router();
 router.post("/register", upload.single("profile_img"), registerUser);
 router.post("/verify-otp", verifyOTP);
 router.post("/login", loginUser);
-router.get("/referral-stats", getReferralStats);
 router.get("/users", getUsers);
 router.get("/users/latest", getNewestUsers);
 router.post("/admin/register", registerAdmin);
